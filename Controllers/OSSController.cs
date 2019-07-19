@@ -14,7 +14,10 @@ namespace forgeSample.Controllers
     {
         private IHostingEnvironment _env;
         public OSSController(IHostingEnvironment env) { _env = env; }
-        public string ClientId { get { return OAuthController.GetAppSetting("FORGE_CLIENT_ID").ToLower(); } }
+        public static async Task<string> GetClientIdAsync () { 
+            string clientIdKey = await OAuthController.GetForgeKeysSSM("FORGE_CLIENT_ID_PARAM");
+            return clientIdKey.ToLower(); 
+        }   
 
         /// <summary>
         /// Return list of buckets (id=#) or list of objects (id=bucketKey)
@@ -34,9 +37,10 @@ namespace forgeSample.Controllers
 
                 // to simplify, let's return only the first 100 buckets
                 dynamic buckets = await appBckets.GetBucketsAsync("US", 100);
+                string clientId = await GetClientIdAsync();
                 foreach (KeyValuePair<string, dynamic> bucket in new DynamicDictionaryItems(buckets.items))
                 {
-                    nodes.Add(new TreeNode(bucket.Value.bucketKey, bucket.Value.bucketKey.Replace(ClientId + "-", string.Empty), "bucket", true));
+                    nodes.Add(new TreeNode(bucket.Value.bucketKey, bucket.Value.bucketKey.Replace(clientId + "-", string.Empty), "bucket", true));
                 }
             }
             else
@@ -81,9 +85,10 @@ namespace forgeSample.Controllers
         public async Task<dynamic> CreateBucket([FromBody]CreateBucketModel bucket)
         {
             BucketsApi buckets = new BucketsApi();
+            string clientId = await GetClientIdAsync();
             dynamic token = await OAuthController.GetInternalAsync();
             buckets.Configuration.AccessToken = token.access_token;
-            PostBucketsPayload bucketPayload = new PostBucketsPayload(string.Format("{0}-{1}", ClientId, bucket.bucketKey.ToLower()), null,
+            PostBucketsPayload bucketPayload = new PostBucketsPayload(string.Format("{0}-{1}", clientId, bucket.bucketKey.ToLower()), null,
               PostBucketsPayload.PolicyKeyEnum.Transient);
             return await buckets.CreateBucketAsync(bucketPayload, "US");
         }

@@ -56,8 +56,8 @@ namespace forgeSample.Controllers
             TwoLeggedApi oauth = new TwoLeggedApi();
             string grantType = "client_credentials";
             dynamic bearer = await oauth.AuthenticateAsync(
-                await GetForgeKeysSSM(GetAppSetting("FORGE_CLIENT_ID_PARAM")),
-                await GetForgeKeysSSM(GetAppSetting("FORGE_CLIENT_SECRET_PARAM")),
+                await GetForgeKeysSSM("FORGE_CLIENT_ID_PARAM"),
+                await GetForgeKeysSSM("FORGE_CLIENT_SECRET_PARAM"),
                 grantType,
                 scopes);
             return bearer;
@@ -66,6 +66,7 @@ namespace forgeSample.Controllers
         public static async Task<string> GetForgeKeysSSM(string SSMkey)
         {
             var chain = new CredentialProfileStoreChain();
+            SSMkey = GetAppSetting(SSMkey);
             AWSCredentials awsCredentials;
             if (chain.TryGetAWSCredentials("default", out awsCredentials))
             {
