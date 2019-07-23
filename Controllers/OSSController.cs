@@ -15,7 +15,7 @@ namespace forgeSample.Controllers
         private IHostingEnvironment _env;
         public OSSController(IHostingEnvironment env) { _env = env; }
         public static async Task<string> GetClientIdAsync () { 
-            string clientIdKey = await OAuthController.GetForgeKeysSSM("FORGE_CLIENT_ID_PARAM");
+            string clientIdKey = await OAuthController.GetForgeKeysSSM("FORGE_CLIENT_ID");
             return clientIdKey.ToLower(); 
         }   
 
