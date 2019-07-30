@@ -65,19 +65,18 @@ namespace forgeSample.Controllers
 
         public static async Task<string> GetForgeKeysSSM(string SSMkey)
         {
-            var chain = new CredentialProfileStoreChain();
             SSMkey = GetAppSetting(SSMkey);
-            AWSCredentials awsCredentials;
-            if (chain.TryGetAWSCredentials("default", out awsCredentials))
+            try 
             {
+                AWSCredentials awsCredentials = new InstanceProfileAWSCredentials();
                 GetParameterRequest parameterRequest = new GetParameterRequest() { Name = SSMkey };
                 AmazonSimpleSystemsManagementClient client = new AmazonSimpleSystemsManagementClient(awsCredentials, Amazon.RegionEndpoint.GetBySystemName(GetAppSetting("AWS_REGION")));
                 GetParameterResponse response = await client.GetParameterAsync(parameterRequest);
                 return response.Parameter.Value;
             }
-            else
+            catch (Exception e)
             {
-                throw new Exception("Cannot obtain Amazon SSM value for " + SSMkey);
+                throw new Exception("Cannot obtain Amazon SSM value for " + SSMkey, e);
             }
         }
 
